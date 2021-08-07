@@ -1,0 +1,63 @@
+server:
+  port: 8002
+
+spring:
+  application:
+    name: seata-server-addcount
+  datasource:
+    url: jdbc:mysql://localhost:3306/seata_user_count?serverTimezone=GMT%2B8&characterEncoding=UTF-8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    name: com.alibaba.druid.pool.DruidDataSource
+
+  cloud:
+    nacos:
+      #服务注册中心
+      discovery:
+        #地址
+        server-addr: localhost:8848
+        #分命名空间
+        namespace: 9d296be8-8c11-41a1-85e3-2a663b0ebebe
+        #分组
+        group: APPLICATION_GROUP
+
+mybatis:
+  type-aliases-package: org.example.dao
+  mapper-locations: classpath:mapper/*.xml
+
+
+#----------控制台信息--------------------
+#NettyPool(网络连接池) create channel to transactionRole:
+#RMROLE（RM角色）,address:192.168.90.1:8091,msg:< RegisterRMRequest{resourceIds='jdbc:mysql://localhost:3306/seata_user_info', applicationId='seata-server-addinfo-application-id', transactionServiceGroup='key_tx_group'} >
+#address：seata server端（TC）所在地址
+#msg：包含的信息
+#resourceIds:当前RM（资源管理器所在地址）
+#applicationId:当前服务的唯一名称
+#transactionServiceGroup:事务所在分组，通过分组来传递全局事务的XID，注意这里的分组并不会显式的出现在nacos控制台的服务列表中，而是seata的一个内部分组
+seata:
+  enabled: true
+  application-id: ${spring.application.name}-application-id
+  tx-service-group: key_tx_group #事务分组
+
+  service:
+    vgroup-mapping:
+      key_tx_group: value-cluster #事务集群名称
+    grouplist:
+      value-cluster: localhost:8091
+    enable-degrade: false
+    disable-global-transaction: false
+
+  config:
+    type: nacos
+    nacos:
+      namespace: "9d296be8-8c11-41a1-85e3-2a663b0ebebe"
+      server-addr: localhost:8848
+      group: SEATA_GROUP
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server #server端注册的服务名
+      server-addr: localhost:8848
+      group : "SEATA_GROUP"
+      namespace: "9d296be8-8c11-41a1-85e3-2a663b0ebebe"
